@@ -1,0 +1,334 @@
+#!/usr/bin/python
+import os
+import final
+import manual
+import ttk
+os.system("yum install tkinter -y")
+os.system("yum install python-imaging -y")
+import Tkinter as T
+# a subclass of Canvas for dealing with resizing of windows
+class ResizingCanvas(T.Canvas):
+    def __init__(self,parent,**kwargs):
+        T.Canvas.__init__(self,parent,**kwargs)
+        self.bind("<Configure>", self.on_resize)
+        self.height = self.winfo_reqheight()
+        self.width = self.winfo_reqwidth()
+
+    def on_resize(self,event):
+        # determine the ratio of old width/height to new width/height
+        wscale = float(event.width)/self.width
+        hscale = float(event.height)/self.height
+        self.width = event.width
+        self.height = event.height
+        # resize the canvas 
+        self.config(width=self.width, height=self.height)
+        # rescale all the objects tagged with the "all" tag
+        self.scale("all",0,0,wscale,hscale)
+
+#----------------------------------------------------------------------------------------------------------------------#
+"""the 
+following are used functions"""
+def checks(canvas,a,width,height):
+	for x in range(a,width,a):
+		canvas.create_line(x,0,x,width,fill="black",width=1)
+	for x in range(a,height,2*a):
+		canvas.create_line(0,x,height,x,fill="black",width=1)
+def increase(var,mode,label,temp):
+	global i,j
+	if mode== 0:
+		i=i+var
+		if i<0:
+			i=0
+		elif i>temp:
+			i=temp
+		label.config(text=str(i))
+	if mode== 1:
+		j=j+var
+		if j<0:
+			j=0
+		elif j>temp:
+			j=temp
+		label.config(text=str(j))
+
+def checked(button_no,state,ip):
+	print(button_no,state,ip)
+	if button_no==0:
+		if state==0 and (manual.status[ip]==3 or manual.status[ip]==0):
+			manual.status[ip]=0
+		elif state==1 and (manual.status[ip]==3 or manual.status[ip]==0):
+			manual.status[ip]=3
+		elif state==0 and (manual.status[ip]==4 or manual.status[ip]==5):
+			manual.status[ip]=4
+		elif state==1 and (manual.status[ip]==4 or manual.status[ip]==5):
+			manual.status[ip]=5
+	else :
+		if state==0 and (manual.status[ip]==4 or manual.status[ip]==0):
+			manual.status[ip]=0
+		elif state==1 and (manual.status[ip]==4 or manual.status[ip]==0):
+			manual.status[ip]=4
+		elif state==0 and (manual.status[ip]==3 or manual.status[ip]==5):
+			manual.status[ip]=3
+		elif state==1 and(manual.status[ip]==3 or manual.status[ip]==5):
+			manual.status[ip]=5
+
+def listofTTandNN():
+	nbutton.config(state="normal")
+	a=namenode_value.get()
+	b=jobtracer_value.get()
+	a=a.split()
+	b=b.split()
+	a=int(a[0].strip())
+	b=int(b[0].strip())
+	
+	manual.set_namenodeANDjobtracker(a,b)
+
+	global frame1,frame2,scrollcanvas
+	frame1.destroy()
+	frame2.destroy()
+	button1.destroy()
+
+	#scrollcanvas = T.Canvas(frame,bg='#FFFFFF',width=300,height=300,scrollregion=(0,0,500,500))
+	#hbar=T.Scrollbar(frame,orient=T.HORIZONTAL)
+	#hbar.pack(side=T.BOTTOM,fill=T.X)
+	#hbar.config(command=scrollcanvas.xview)
+	#vbar=T.Scrollbar(frame,orient=T.VERTICAL)
+	#vbar.pack(side=T.RIGHT,fill=T.Y)
+	#vbar.config(command=scrollcanvas.yview)
+	#scrollcanvas.config(width=300,height=300)
+	#scrollcanvas.config(xscrollcommand=hbar.set, yscrollcommand=vbar.set)
+	#scrollcanvas.pack(side=T.LEFT,expand=True,fill=T.BOTH)
+
+	frame1=T.Frame(frame)
+	frame1.place(relx=0.5,rely=0.1,anchor=T.N)
+	frame2=T.Frame(frame)
+	frame2.place(relx=0.5,rely=0.1,anchor=T.S)
+	label1=T.Label(frame2,text="DATANODE  TASKTRACKER SNO.  IP   RAM   HARDDISK",font="8",fg="white",bg="red",anchor=T.CENTER)
+	label1.pack(fill=T.X,expand="yes")
+	
+	global var1,var2
+	var1=[]
+	var2=[]
+	checkbuttons=[]
+	for i in manual.string:
+		j=i.split()
+		j=int(j[0].strip())
+		#print(j,manual.sequence[manual.seq[j]])
+		#print(manual.seq[j],j,manual.status[manual.seq[j]])
+		if manual.status[manual.seq[j]]==0:
+			#v=T.IntVar()
+			var1.append(T.IntVar())
+			var2.append(T.IntVar())
+			#print(var1[len(var1)-1].get())
+			checkbuttons=T.Checkbutton(frame1, variable=var1[len(var1)-1],bg="dark green",fg="light green")
+			checkbuttons.grid(row=j,column=0,sticky=T.W+T.E)
+			checkbuttons=T.Checkbutton(frame1, text=i, variable=var2[len(var2)-1],bg="dark green",fg="light green")
+			checkbuttons.grid(row=j,column=1,sticky=T.W+T.E)
+			
+def openips():
+	os.system("rm -rf view.txt")
+	os.system("cpy ips.txt view.txt")
+	os.system("gedit view.txt")
+def auto(v):
+	global id2,id3,temp
+	s=T.StringVar()
+	if v==1:
+		#print(temp)
+		if temp==1:
+			mycanvas.delete(id3)
+		var="->It configures an optimized cluster\nremember namenode and task tracer will be of diffrent system\nyou have to tell the no of systems you want to use "
+		root.update()
+		#print(rb1.winfo_geometry())
+		s=rb1.winfo_geometry()
+		s=s.split("+")
+	   	id2=mycanvas.create_text(int(s[1])+180,int(s[2])+80,fill="#476042",font="Helvetica 10 bold italic",text=var,anchor=T.CENTER)
+		temp=int(1)
+	elif v==2:
+		#print(temp)
+		if temp==1:
+			mycanvas.delete(id2)
+		var="Allows you to form the cluster according to your wish"
+		root.update()
+		s=rb1.winfo_geometry()
+		s=s.split("+")
+	   	id3=mycanvas.create_text(int(s[1])+180,int(s[2])+80,fill="#476042",font="Helvetica 10 bold italic",text=var,anchor=T.CENTER)
+		temp=int(1)
+
+def fn():
+	global command,button1,rb1,rb2,id1
+	if command == 0: 
+		var="got the ip's \n-->to view plz press view button \n-->press next button to obtain information of cpu and rams"
+		mycanvas.itemconfigure(id1,text=var)
+  		os.system("python getip.py")
+		button1=T.Button(frame,text="view  ",fg='blue',command=openips)
+		button1.place(relx=0,x=3, rely=1,anchor=T.SW)
+		root.update()
+	elif command == 1:
+		button1.destroy()
+		var="got the information of different computer plz press next to continue"
+		mycanvas.itemconfigure(id1,text=var)
+  		os.system("python info.py")
+		root.update()
+	elif command==2:
+		var="plz enter the mode of configuration"
+		mycanvas.itemconfigure(id1,text=var)
+		global v
+		v = T.IntVar()
+		v.set(1)
+		rb1=T.Radiobutton(frame,text="automatic",variable=v, value=1,indicatoron = 0,fg='blue',command= lambda: auto(1))
+		rb1.place(relx=0.5,x=-180,rely=0.5,y=100,anchor=T.CENTER)
+		rb2=T.Radiobutton(frame,text="manual  ",variable=v, value=2,indicatoron = 0,fg='blue',command= lambda: auto(2))
+		rb2.place(relx=0.5,x=180,rely=0.5,y=100,anchor=T.CENTER)
+		root.update()
+	elif command==3:
+		global id2,id3,i,j,temp
+		i=int(0)
+		j=int(0)
+		rb1.destroy()
+		rb2.destroy()
+		if v.get()==1 :
+			if temp==1:
+				mycanvas.delete(id2)
+			var=" welcome to automatic configuration"
+			mycanvas.itemconfigure(id1,text=var)
+			root.update()
+			#import final ----------setting the final variable
+			final.set_final()
+			global frame1,frame2
+			frame1=T.Frame(frame)
+			frame1.place(relx=0.5,x=-300,rely=0.5,y=100)
+			frame2=T.Frame(frame)
+			frame2.place(relx=0.5,x=80,rely=0.5,y=100)
+			#id2=mycanvas.create_text(root.wget_height()*0.5-300,root.wget_width()*0.5+100,text="Number of TASKTRACERS",FILL="purple",font="Helvetica 8 bold italic",tags="all")
+			#id3=mycanvas.create_text(root.wget_height()*0.5+300,root.wget_width()*0.5+100,text="Number of DATANODES",FILL="purple",font="Helvetica 8 bold italic",tags="all")
+			labeljt=T.Label(frame1,text="FOR TASKTRACKER",fg="white",font="10",width=20,bg="red")
+			labeljt.pack(fill=T.X,expand="yes")
+			label1=T.Label(frame1,text=i,fg="light green",font="10",width=20,bg="dark green")
+			label1.pack(fill=T.X,expand="yes")
+			
+			increment_button1=T.Button(frame1,text="increment",fg='blue',command=lambda:increase(1,0,label1,max(0,len(final.sram)-2)))
+			increment_button1.pack(side=T.RIGHT,expand="yes")
+	
+			decrement_button1=T.Button(frame1,text="decrement",fg='blue',command=lambda:increase(-1,0,label1,max(0,len(final.sram)-2)))
+			decrement_button1.pack(side=T.RIGHT,expand="yes")
+
+			labeljt=T.Label(frame2,text="FOR DATANODE",fg="white",font="10",width=20,bg="red")
+			labeljt.pack(fill=T.X,expand="yes")
+			label2=T.Label(frame2,text=j,fg="light green",font="10",width=20,bg="dark green")
+			label2.pack(fill=T.X,expand="yes")
+			
+			increment_button2=T.Button(frame2,text="increment",fg='blue',command= lambda:increase(1,1,label2,len(final.shd)))
+			increment_button2.pack(side=T.RIGHT)
+
+			decrement_button1=T.Button(frame2,text="decrement",fg='blue',command=lambda:increase(-1,1,label2,len(final.shd)))
+			decrement_button1.pack(side=T.RIGHT,expand="yes")
+
+		elif v.get()==2 :
+			global id2,id3,i,j,temp
+			if temp==1:
+				mycanvas.delete(id3)
+			var="Welcome to Manual Configuration"
+			mycanvas.itemconfigure(id1,text=var)
+			root.update()
+			
+			global frame1,frame2,namenode_value,jobtracer_value,button1
+			nbutton.config(state="disable")
+			frame1=T.Frame(frame)
+			frame1.place(relx=0.5,rely=0.5,y=50,anchor=T.CENTER)
+			frame2=T.Frame(frame)
+			frame2.place(relx=0.5,rely=0.5,y=-50,anchor=T.CENTER)
+			manual.set_manual()
+			manual.form_string()
+
+
+			label1=T.Label(frame1,text="For Namenode following is order",fg="light green",font="8",bg="dark green")
+			label1.pack(fill=T.X,expand="yes")
+			label2=T.Label(frame1,text="SERIAL NO., IP, RAM, HARDDISK AVAILABLE",fg="light green",font="10",width=40,bg="dark green")
+			label2.pack(fill=T.X,expand="yes")
+			namenode_value = T.StringVar()
+			jobtracer_value=T.StringVar()
+			namenode_combobox=ttk.Combobox(frame1,textvariable = namenode_value,value=manual.string,state='readonly')
+			namenode_value.set(manual.string[0])
+			namenode_combobox.pack(fill=T.X,expand="yes")
+			
+			label3=T.Label(frame2,text="For Jobtracer following is order",fg="light green",font="8",bg="dark green")
+			label3.pack(fill=T.X,expand="yes")
+			label4=T.Label(frame2,text="SERIAL NO., IP, RAM, HARDDISK AVAILABLE",fg="light green",font="10",width=40,bg="dark green")
+			label4.pack(fill=T.X,expand="yes")
+			jobtracer_combobox=ttk.Combobox(frame2,textvariable =jobtracer_value,value=manual.string,state='readonly')
+			jobtracer_value.set(manual.string[0])
+			jobtracer_combobox.pack(fill=T.X,expand="yes")
+			
+			button1=T.Button(frame,text="summit",fg='blue',command=listofTTandNN)
+			#button1.config(state='normal')
+			button1.place(relx=0.5,rely=0.5,y=100,anchor=T.CENTER)
+	else :
+		global v,i,j,frame1,frame2
+		count=int(0)
+		frame1.destroy()
+		frame2.destroy()
+		var="configuration completed"
+		mycanvas.itemconfigure(id1,text=var)
+		if v.get()==1 :
+			final.set_tasktracer(i+2)
+			final.set_datanode(j)
+			os.system("python runconf.py")
+		elif v.get()==2:
+			global var1,var2
+			for i in manual.string:
+				j=i.split()
+				j=int(j[0].strip())
+				if manual.status[manual.seq[j]]==0:
+					checked(0,var1[count].get(),manual.seq[j])
+					checked(1,var2[count].get(),manual.seq[j])
+					count+=1
+			#scrollcanvas.destroy()
+			manual.set_tasktracer_and_datanode()
+			print("here\n",manual.status)
+			os.system("python runconf.py")
+	command=command+1
+
+
+def close_window():
+  os.system("rm -rf baba ips.txt ip1.txt task.txt hd.txt view.txt")
+  root.destroy()
+
+
+#---------------------------------------------------------------------------------------------------------------#
+command=int(0)
+temp=int(0)
+
+root=T.Tk()
+root.title('welcome to Hadoop configuration software!')
+root.configure(background='black')
+root.geometry("600x600+100+200")  
+root.update()
+"""axb for dimension +c+d for the gui position on screen"""
+
+frame=T.Frame(root)
+frame.pack(fill='both',expand='yes')
+mycanvas = ResizingCanvas(frame,width=600, height=600, highlightthickness=0,bg='white')
+#mycanvas= T.Canvas(frame,height=600,width=600)
+mycanvas.pack(fill=T.BOTH, expand=T.YES)
+
+logo = T.PhotoImage(file="icon-hadoop-big.gif")
+displayedlogo = logo.subsample(max(1,600/root.winfo_height()),max(1,root.winfo_width()))
+checks(mycanvas,50,600,600)
+mycanvas.create_rectangle(00,569,600,600,fill="maroon",tags="all")
+mycanvas.create_image(300, 300, anchor=T.CENTER, image=logo,tags="all")
+
+var="welcome this is an application to configure the hadoop cluster"
+id1=mycanvas.create_text(300,150,fill="red",font="Helvetica 12 bold italic",width=390,text=var,anchor=T.CENTER)
+#put canvas widgets in between mycanvas.pack and .addtag_all 
+mycanvas.addtag_all("all")
+
+# NEXT AND CANCEL BUTTON
+
+button=T.Button(frame,text="Next  ",fg='blue',command=fn)
+button.place(relx=0.95, rely=1,anchor=T.SE)
+nbutton=button
+button=T.Button(frame,text="Cancel",fg='blue',command=close_window)
+button.place(relx=0.95,x=-70, rely=1,anchor=T.SE)
+root.protocol('WM_DELETE_WINDOW', close_window)
+root.mainloop()
+
+
